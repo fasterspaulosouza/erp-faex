@@ -5,6 +5,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { UserService } from '../user/user.service';
 import { AuthRegisterDTO } from './dto/auth-register.dto';
 import * as bcrypt from 'bcrypt';
+import { MailService } from 'src/common/external/mail/mail.service';
 
 @Injectable()
 export class AuthService {
@@ -16,6 +17,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly prismaService: PrismaService,
     private readonly userService: UserService,
+    private readonly mailService: MailService
   ) {}
 
   createToken(user: User) {
@@ -97,6 +99,16 @@ export class AuthService {
         audience: this.audience,
       }
     );
+
+    await this.mailService.send({
+      to: email,
+      subject: "Esqueci a senha",
+      template: "forget",
+      data: {
+        name: user.name,
+        token
+      }
+    })
 
     return true;
   }
